@@ -9,33 +9,30 @@ export const fetchToGetAccount = createAsyncThunk(
   async (_, thunkAPI) => {
     const { ethereum } = window;
     const provider = await detectEthereumProvider();
-    if (window.ethereum) {
+
+    if (provider) {
       try {
-        // Request account access from the user
-        await window.ethereum.request({ method: "eth_requestAccounts" });
+        await ethereum.request({ method: "eth_requestAccounts" });
 
-        // Set up ethers provider with MetaMask
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
-        // Use the signer to interact with the Ethereum blockchain
-        // For example, signer.getAddress(), signer.sendTransaction(), etc.
-        const address = await signer.getAddress();
-        console.log("Connected Ethereum address:", address);
 
-        // Example: Get the balance of the connected address
+        const address = await signer.getAddress();
         const balance = await signer.getBalance();
-        console.log("Account balance:", ethers.utils.formatEther(balance));
+
         return {
           address,
           balance: formatBalance(balance),
         };
       } catch (error) {
-        console.error("Error connecting to MetaMask:", error);
+        return thunkAPI.rejectWithValue(error);
       }
     } else {
-      console.error(
-        "MetaMask not detected. Please install the MetaMask extension."
-      );
+      return thunkAPI.rejectWithValue({
+        code: 4042,
+        message:
+          "MetaMask is not installed or not available. Please, instal  MetaMask app",
+      });
     }
     // try {
     //   if (provider) {
