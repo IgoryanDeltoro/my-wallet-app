@@ -8,17 +8,17 @@ export const fetchToGetAccount = createAsyncThunk(
   "wallet/getAccount",
   async (_, thunkAPI) => {
     const { ethereum } = window;
-    const provider = await detectEthereumProvider();
+    const provide = await detectEthereumProvider();
 
-    if (provider) {
+    if (provide) {
       try {
         await ethereum.request({ method: "eth_requestAccounts" });
 
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
+        const provider = new ethers.BrowserProvider(ethereum);
+        const signer = await provider.getSigner();
 
         const address = await signer.getAddress();
-        const balance = await signer.getBalance();
+        const balance = await provider.getBalance(address);
 
         return {
           address,
