@@ -1,0 +1,13 @@
+.modal {
+  max-width: 400px;
+  margin-top: calc((100vh / 2) - 125px);
+  padding: 20px;
+  background-color: bisque;
+  border-radius: 20px;
+}
+.button {
+  display: block;
+  width: 150px;
+  margin-right: auto;
+  margin-left: auto;
+}
