@@ -7,6 +7,7 @@ export const fetchToGetAccount = createAsyncThunk(
   "wallet/getAccount",
   async (_, thunkAPI) => {
     const { ethereum } = window;
+
     try {
       if (typeof ethereum !== "undefined") {
         const accounts = await ethereum.request({
@@ -26,7 +27,8 @@ export const fetchToGetAccount = createAsyncThunk(
       } else {
         return thunkAPI.rejectWithValue({
           code: 4042,
-          message: "MetaMask is not installed or not available.",
+          message:
+            "MetaMask is not installed or not available. Please, instal the MetaMask app",
         });
       }
     } catch (error) {

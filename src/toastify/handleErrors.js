@@ -5,7 +5,7 @@ export const handleErrors = (error) => {
     case 4001:
       toast.error(error?.message);
       break;
-    case 4002:
+    case 4042:
       toast.error(error?.message);
       break;
     case -32602:
