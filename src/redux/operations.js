@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { formatBalance } from "../utils/index";
+import detectEthereumProvider from "@metamask/detect-provider";
 import { ethers } from "ethers";
 import { toast } from "react-toastify";
 
@@ -7,28 +8,36 @@ export const fetchToGetAccount = createAsyncThunk(
   "wallet/getAccount",
   async (_, thunkAPI) => {
     const { ethereum } = window;
+    const provider = await detectEthereumProvider();
 
     try {
-      if (typeof ethereum !== "undefined") {
-        const accounts = await ethereum.request({
-          method: "eth_requestAccounts",
-        });
+      if (provider) {
+        if (provider === ethereum) {
+          const accounts = await provider.request({
+            method: "eth_requestAccounts",
+          });
 
-        const balance = await ethereum?.request({
-          method: "eth_getBalance",
-          params: [accounts[0], "latest"],
-        });
+          const balance = await ethereum?.request({
+            method: "eth_getBalance",
+            params: [accounts[0], "latest"],
+          });
 
-        toast.success("Connection to the wallet has been successful");
-        return {
-          address: accounts[0],
-          balance: formatBalance(balance),
-        };
+          toast.success("Connection to the wallet has been successful");
+          return {
+            address: accounts[0],
+            balance: formatBalance(balance),
+          };
+        } else {
+          return thunkAPI.rejectWithValue({
+            code: 4042,
+            message: "Do you have multiple wallets installed?",
+          });
+        }
       } else {
         return thunkAPI.rejectWithValue({
           code: 4042,
           message:
-            "MetaMask is not installed or not available. Please, instal the MetaMask app",
+            "MetaMask is not installed or not available. Please, instal  MetaMask app",
         });
       }
     } catch (error) {
