@@ -1,39 +1,110 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { formatBalance } from "../utils/index";
+// import { formatBalance } from "../utils/index";
 import detectEthereumProvider from "@metamask/detect-provider";
 import { ethers, formatUnits, parseEther } from "ethers";
 import { toast } from "react-toastify";
 
 export const fetchToGetAccount = createAsyncThunk(
   "wallet/getAccount",
-  async (_, thunkAPI) => {
-    const { ethereum } = window;
-    const provide = await detectEthereumProvider();
+  async () => {
+    /*****************************************/
+    /* Detect the MetaMask Ethereum provider */
+    /*****************************************/
 
-    if (provide) {
-      try {
-        await ethereum.request({ method: "eth_requestAccounts" });
+    const provider = await detectEthereumProvider();
 
-        const provider = new ethers.BrowserProvider(ethereum);
-        const signer = await provider.getSigner();
-
-        const address = await signer.getAddress();
-        const balance = await provider.getBalance(address);
-
-        return {
-          address,
-          balance: formatBalance(balance),
-        };
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error);
-      }
+    if (provider) {
+      startApp(provider);
     } else {
-      return thunkAPI.rejectWithValue({
-        code: 4042,
-        message:
-          "MetaMask is not installed or not available. Please, instal  MetaMask app",
-      });
+      console.log("Please install MetaMask!");
     }
+
+    function startApp(provider) {
+      if (provider !== window.ethereum) {
+        console.error("Do you have multiple wallets installed?");
+      }
+    }
+
+    /**********************************************************/
+    /* Handle chain (network) and chainChanged (per EIP-1193) */
+    /**********************************************************/
+
+    await window.ethereum.request({ method: "eth_chainId" });
+
+    window.ethereum.on("chainChanged", handleChainChanged);
+
+    function handleChainChanged() {
+      window.location.reload();
+    }
+
+    /***********************************************************/
+    /* Handle user accounts and accountsChanged (per EIP-1193) */
+    /***********************************************************/
+
+    let currentAccount = null;
+    window.ethereum
+      .request({ method: "eth_accounts" })
+      .then(handleAccountsChanged)
+      .catch((err) => {
+        console.error(err);
+      });
+
+    window.ethereum.on("accountsChanged", handleAccountsChanged);
+
+    function handleAccountsChanged(accounts) {
+      if (accounts.length === 0) {
+        console.log("Please connect to MetaMask.");
+      } else if (accounts[0] !== currentAccount) {
+        currentAccount = accounts[0];
+      }
+    }
+
+    /*********************************************/
+    /* Access the user's accounts (per EIP-1102) */
+    /*********************************************/
+
+    await window.ethereum
+      .request({ method: "eth_requestAccounts" })
+      .catch((err) => {
+        if (err.code === 4001) {
+          console.log("Please connect to MetaMask.");
+        } else {
+          console.error(err);
+        }
+      });
+
+    return {
+      address: ";l;slk;ldk;lask;ldkslkdkfjfghfgd",
+      balance: "lklkdlfkds",
+    };
+
+    // const { ethereum } = window;
+    // const provide = await detectEthereumProvider();
+
+    // if (provide) {
+    //   try {
+    //     await ethereum.request({ method: "eth_requestAccounts" });
+
+    //     const provider = new ethers.BrowserProvider(ethereum);
+    //     const signer = await provider.getSigner();
+
+    //     const address = await signer.getAddress();
+    //     const balance = await provider.getBalance(address);
+
+    //     return {
+    //       address,
+    //       balance: formatBalance(balance),
+    //     };
+    //   } catch (error) {
+    //     return thunkAPI.rejectWithValue(error);
+    //   }
+    // } else {
+    //   return thunkAPI.rejectWithValue({
+    //     code: 4042,
+    //     message:
+    //       "MetaMask is not installed or not available. Please, instal  MetaMask app",
+    //   });
+    // }
   }
 );
 
