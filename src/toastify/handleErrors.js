@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 export const handleErrors = (error) => {
   switch (error?.code) {
     case 4001:
-      toast.error(error?.message);
+      toast.error("User denied transaction signature");
       break;
     case 4042:
       toast.error(error?.message);
