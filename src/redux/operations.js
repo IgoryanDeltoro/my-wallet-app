@@ -13,7 +13,22 @@ export const fetchToGetAccount = createAsyncThunk(
     try {
       if (provider) {
         if (provider === ethereum) {
-          const accounts = await provider.request({
+          await ethereum.request({
+            method: "eth_chainId",
+          });
+          ethereum.on("chainChanged", () => window.location.reload());
+
+          let currentAccount = null;
+
+          window.ethereum.on("accountsChanged", (accounts) => {
+            if (accounts.length === 0) {
+              console.log("Please connect to MetaMask.");
+            } else if (accounts[0] !== currentAccount) {
+              currentAccount = accounts[0];
+            }
+          });
+
+          const accounts = await ethereum?.request({
             method: "eth_requestAccounts",
           });
 
