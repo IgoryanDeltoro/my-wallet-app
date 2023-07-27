@@ -9,55 +9,67 @@ export const fetchToGetAccount = createAsyncThunk(
   async (_, thunkAPI) => {
     const { ethereum } = window;
     const provider = await detectEthereumProvider();
+    if (window.ethereum) {
+      try {
+        // Request account access from the user
+        await window.ethereum.request({ method: "eth_requestAccounts" });
 
-    try {
-      if (provider) {
-        if (provider === ethereum) {
-          await ethereum.request({
-            method: "eth_chainId",
-          });
-          ethereum.on("chainChanged", () => window.location.reload());
+        // Set up ethers provider with MetaMask
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        // Use the signer to interact with the Ethereum blockchain
+        // For example, signer.getAddress(), signer.sendTransaction(), etc.
+        const address = await signer.getAddress();
+        console.log("Connected Ethereum address:", address);
 
-          let currentAccount = null;
-
-          window.ethereum.on("accountsChanged", (accounts) => {
-            if (accounts.length === 0) {
-              console.log("Please connect to MetaMask.");
-            } else if (accounts[0] !== currentAccount) {
-              currentAccount = accounts[0];
-            }
-          });
-
-          const accounts = await ethereum?.request({
-            method: "eth_requestAccounts",
-          });
-
-          const balance = await ethereum?.request({
-            method: "eth_getBalance",
-            params: [accounts[0], "latest"],
-          });
-
-          toast.success("Connection to the wallet has been successful");
-          return {
-            address: accounts[0],
-            balance: formatBalance(balance),
-          };
-        } else {
-          return thunkAPI.rejectWithValue({
-            code: 4042,
-            message: "Do you have multiple wallets installed?",
-          });
-        }
-      } else {
-        return thunkAPI.rejectWithValue({
-          code: 4042,
-          message:
-            "MetaMask is not installed or not available. Please, instal  MetaMask app",
-        });
+        // Example: Get the balance of the connected address
+        const balance = await signer.getBalance();
+        console.log("Account balance:", ethers.utils.formatEther(balance));
+        return {
+          address,
+          balance: formatBalance(balance),
+        };
+      } catch (error) {
+        console.error("Error connecting to MetaMask:", error);
       }
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+    } else {
+      console.error(
+        "MetaMask not detected. Please install the MetaMask extension."
+      );
     }
+    // try {
+    //   if (provider) {
+    //     if (provider === ethereum) {
+    //       const accounts = await ethereum?.request({
+    //         method: "eth_requestAccounts",
+    //       });
+
+    //       const balance = await ethereum?.request({
+    //         method: "eth_getBalance",
+    //         params: [accounts[0], "latest"],
+    //       });
+
+    //       toast.success("Connection to the wallet has been successful");
+    //       return {
+    //         address: accounts[0],
+    //         balance: formatBalance(balance),
+    //       };
+    //     } else {
+    //       return thunkAPI.rejectWithValue({
+    //         code: 4042,
+    //         message: "Do you have multiple wallets installed?",
+    //       });
+    //     }
+    //   } else {
+    //     return thunkAPI.rejectWithValue({
+    //       code: 4042,
+    //       message:
+    //         "MetaMask is not installed or not available. Please, instal  MetaMask app",
+    //     });
+    //   }
+    // } catch (error) {
+    //   return thunkAPI.rejectWithValue(error);
+    // }
   }
 );
 
