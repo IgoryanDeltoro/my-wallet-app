@@ -25,6 +25,7 @@ export const fetchToGetAccount = createAsyncThunk(
         };
       } else {
         return thunkAPI.rejectWithValue({
+          code: 4042,
           message: "MetaMask is not installed or not available.",
         });
       }
