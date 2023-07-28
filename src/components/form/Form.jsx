@@ -8,6 +8,8 @@ import { sendTransaction } from "../../redux/operations";
 import { useWallet } from "../../hooks";
 import Loader from "./Loader";
 import { handleErrors } from "../../toastify";
+import { isValidEtherAddress } from "../../utils/validate";
+import { toast } from "react-toastify";
 
 const initialState = { address: "", tokens: "" };
 
@@ -22,8 +24,18 @@ const FormFields = () => {
 
   const handleOnSubmit = (e) => {
     e.preventDefault();
-    dispatch(sendTransaction(state));
-    reset();
+
+    if (state.address === "" || state.tokens === "") {
+      toast.error("Please, fill in all fields ");
+      return;
+    }
+
+    if (isValidEtherAddress(state.address)) {
+      dispatch(sendTransaction(state));
+      reset();
+      return;
+    }
+    toast.error("Your address is not valid");
   };
 
   const reset = () => {
